@@ -34,7 +34,7 @@ def migrate(
         if src.exists():
             shutil.copy2(src, target / fname)
 
-    dirs_to_copy = ["codex", "skills"]
+    dirs_to_copy = ["codex"]
     for dname in dirs_to_copy:
         src = source / dname
         if src.is_dir():

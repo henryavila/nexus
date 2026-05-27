@@ -87,10 +87,9 @@ class EnvDetailScreen(ModalScreen[None]):
     }
     """
 
-    def __init__(self, env: dict, skills_data: dict | None = None, **kwargs):
+    def __init__(self, env: dict, **kwargs):
         super().__init__(**kwargs)
         self.env_data = env
-        self.skills_data = skills_data or {}
 
     def compose(self) -> ComposeResult:
         e = self.env_data
@@ -123,27 +122,6 @@ class EnvDetailScreen(ModalScreen[None]):
             if absent:
                 yield Static("Ausentes:", classes="detail-label")
                 yield Static(", ".join(absent), classes="detail-value")
-
-            # Skills installed on this environment
-            hostname = e.get("hostname", "")
-            global_skills = []
-            repo_skills = []
-            for slug, info in self.skills_data.items():
-                host_info = info.get("presence", {}).get(hostname)
-                if not host_info:
-                    continue
-                title = info.get("title", slug)
-                if host_info.get("global"):
-                    global_skills.append(title)
-                else:
-                    repos = ", ".join(host_info.get("repos", []))
-                    repo_skills.append(f"{title} ({repos})")
-            if global_skills or repo_skills:
-                yield Static("Skills:", classes="detail-label")
-                if global_skills:
-                    yield Static(f"  \U0001F310 {', '.join(sorted(global_skills))}", classes="detail-value")
-                if repo_skills:
-                    yield Static(f"  \U0001F4E6 {', '.join(sorted(repo_skills))}", classes="detail-value")
 
             yield Static("[esc] Fechar", classes="detail-footer")
 

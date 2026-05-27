@@ -33,7 +33,7 @@ def init(
     if not config.data_json.exists():
         config.data_json.write_text(json.dumps({
             "version": "3.0", "last_full_scan": None, "current_environment": None,
-            "projects": [], "apps": [], "environments": [], "skills": {}, "ideas": [], "codex": [],
+            "projects": [], "apps": [], "environments": [], "ideas": [], "codex": [],
         }, indent=2), encoding="utf-8")
 
     typer.echo(f"✓ Diretório de dados inicializado em: {config.data_dir}")

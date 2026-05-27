@@ -13,7 +13,6 @@ def test_init_creates_data_dir(tmp_path, monkeypatch):
     assert data_dir.exists()
     assert (data_dir / "projects.yml").exists()
     assert (data_dir / "codex").is_dir()
-    assert (data_dir / "skills").is_dir()
 
 
 def test_init_with_custom_path(tmp_path, monkeypatch):

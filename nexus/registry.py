@@ -36,7 +36,7 @@ def ensure_bootstrap() -> None:
     if not DATA_JSON.exists():
         DATA_JSON.write_text(
             json.dumps({"version": "3.0", "last_full_scan": None, "current_environment": None,
-                        "projects": [], "apps": [], "environments": [], "skills": {}, "ideas": [], "codex": []},
+                        "projects": [], "apps": [], "environments": [], "ideas": [], "codex": []},
                        indent=2),
             encoding="utf-8",
         )

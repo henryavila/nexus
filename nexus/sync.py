@@ -79,7 +79,7 @@ def _commit_and_push(repo_path: str, files: list[str], command: str) -> bool:
             _warn_sync_failure(f"erro inesperado ao sincronizar ({command}).")
             return False
 
-        # Expand glob patterns (e.g. "data/skills/*.md") to actual files
+        # Expand glob patterns (e.g. "data/codex/*.md") to actual files
         expanded = []
         for f in files:
             if "*" in f:
@@ -190,10 +190,5 @@ def auto_sync_registry(repo_path: str, command: str) -> bool:
     codex_dir = Path(repo_path) / "data" / "codex"
     if codex_dir.exists():
         data_files.append("data/codex/")
-    # Include skills/*.md if dir exists
-    skills_dir = Path(repo_path) / "data" / "skills"
-    if skills_dir.exists():
-        for md in skills_dir.glob("*.md"):
-            data_files.append(f"data/skills/{md.name}")
 
     return _commit_and_push(repo_path, data_files, command)

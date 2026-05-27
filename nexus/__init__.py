@@ -12,8 +12,6 @@ PROJECTS_YML = DATA_DIR / "projects.yml"
 IDEAS_YML = DATA_DIR / "ideas.yml"
 APPS_YML = DATA_DIR / "apps.yml"
 ENVIRONMENTS_YML = DATA_DIR / "environments.yml"
-SKILLS_DIR = DATA_DIR / "skills"
-
 IDEA_PRIORITIES = ["high", "medium", "low"]
 
 DEFAULT_DOMAINS = ["trabalho", "pessoal", "igreja", "lazer", "empreendimentos", "estudo", "tech"]

@@ -183,7 +183,7 @@ def _update_codex_in_data_json() -> None:
             data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
         else:
             data = {"version": "3.0", "last_full_scan": None, "current_environment": None,
-                    "projects": [], "apps": [], "environments": [], "skills": {}}
+                    "projects": [], "apps": [], "environments": []}
         data["codex"] = codex_dicts
         DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
         DATA_JSON.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")

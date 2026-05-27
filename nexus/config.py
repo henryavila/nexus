@@ -59,10 +59,6 @@ class NexusConfig:
         return self.data_dir / "codex"
 
     @property
-    def skills_dir(self) -> Path:
-        return self.data_dir / "skills"
-
-    @property
     def data_json(self) -> Path:
         return self.data_dir / "data.json"
 
@@ -73,4 +69,3 @@ class NexusConfig:
     def ensure_dirs(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.codex_dir.mkdir(parents=True, exist_ok=True)
-        self.skills_dir.mkdir(parents=True, exist_ok=True)

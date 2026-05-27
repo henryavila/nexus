@@ -46,7 +46,6 @@ def test_derived_paths():
     assert cfg.ideas_yml == Path("/tmp/nexus-test/ideas.yml")
     assert cfg.environments_yml == Path("/tmp/nexus-test/environments.yml")
     assert cfg.codex_dir == Path("/tmp/nexus-test/codex")
-    assert cfg.skills_dir == Path("/tmp/nexus-test/skills")
     assert cfg.data_json == Path("/tmp/nexus-test/data.json")
     assert cfg.lock_file == Path("/tmp/nexus-test/.nexus.lock")
 

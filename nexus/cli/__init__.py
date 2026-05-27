@@ -64,7 +64,6 @@ from nexus.cli import project_cmds  # noqa: E402, F401
 from nexus.cli import idea_cmds  # noqa: E402, F401
 from nexus.cli import app_cmds  # noqa: E402, F401
 from nexus.cli import codex_cmds  # noqa: E402, F401
-from nexus.cli import skill_cmds  # noqa: E402, F401
 from nexus.cli import env_cmds  # noqa: E402, F401
 from nexus.cli import scan_cmds  # noqa: E402, F401
 from nexus.cli import sync_cmds  # noqa: E402, F401

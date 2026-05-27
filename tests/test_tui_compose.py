@@ -17,7 +17,6 @@ try:
         CodexDetailScreen,
         EnvDetailScreen,
         IdeaDetailScreen,
-        SkillDetailScreen,
     )
     HAS_TEXTUAL = True
 except ImportError:
@@ -140,58 +139,6 @@ class TestCodexDetailScreenCompose(unittest.TestCase):
 
         async def run():
             screen = CodexDetailScreen(entry=entry)
-            app = self._make_wrapper_app(screen)
-            async with app.run_test(headless=True, size=(120, 40)) as pilot:
-                await pilot.pause(0.1)
-
-        _run(run())
-
-
-@unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
-class TestSkillDetailScreenCompose(unittest.TestCase):
-    """Cover SkillDetailScreen.compose() — lines 443-457."""
-
-    def _make_wrapper_app(self, screen):
-        class WrapperApp(App):
-            def __init__(self, modal, **kwargs):
-                super().__init__(**kwargs)
-                self._modal = modal
-
-            def compose(self) -> ComposeResult:
-                yield Label("bg")
-
-            async def on_mount(self) -> None:
-                await self.push_screen(self._modal)
-                self._modal.dismiss(None)
-
-        return WrapperApp(screen)
-
-    def test_skill_compose_global_with_url(self):
-        """SkillDetailScreen compose() with global scope and URL (lines 443-457)."""
-        skill = {
-            "title": "Python Tips",
-            "slug": "python-tips",
-            "presence": {"H": {"global": True}},
-            "url": "https://example.com/python-tips",
-        }
-
-        async def run():
-            screen = SkillDetailScreen(skill=skill)
-            app = self._make_wrapper_app(screen)
-            async with app.run_test(headless=True, size=(120, 40)) as pilot:
-                await pilot.pause(0.1)
-
-        _run(run())
-
-    def test_skill_compose_local_no_url(self):
-        """SkillDetailScreen compose() with local scope, no URL."""
-        skill = {
-            "slug": "my-local-skill",
-            "presence": {"H": {"global": False, "repos": ["proj"]}},
-        }
-
-        async def run():
-            screen = SkillDetailScreen(skill=skill)
             app = self._make_wrapper_app(screen)
             async with app.run_test(headless=True, size=(120, 40)) as pilot:
                 await pilot.pause(0.1)

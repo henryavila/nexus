@@ -188,7 +188,7 @@ def _update_ideas_in_data_json() -> None:
             data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
         else:
             data = {"version": "3.0", "last_full_scan": None, "current_environment": None,
-                    "projects": [], "apps": [], "environments": [], "skills": {}}
+                    "projects": [], "apps": [], "environments": []}
         data["ideas"] = idea_dicts
         data["version"] = "3.0"
         DATA_JSON.parent.mkdir(parents=True, exist_ok=True)

@@ -12,7 +12,6 @@ _EMPTY_DATA = {
     "projects": [],
     "apps": [],
     "environments": [],
-    "skills": {},
     "ideas": [],
     "codex": [],
 }

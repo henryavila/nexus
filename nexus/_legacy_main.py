@@ -41,7 +41,6 @@ _MUTATING_COMMANDS = {
     "codex",  # covers codex add/edit/remove
     "env",  # covers env setup
     "app",  # covers app add/edit/remove
-    "skill",  # covers skill add/edit/remove
     "project",  # covers project replace/absorb/split
 }
 
@@ -54,7 +53,6 @@ _COMMAND_SYNC_FILES = {
     "discover": ["data/projects.yml", "data/apps.yml"],
     "idea":     ["data/ideas.yml", "data/projects.yml", "data/apps.yml"],
     "app":      ["data/apps.yml", "data/projects.yml"],
-    "skill":    ["data/skills/*.md"],
     "codex":    ["data/codex/"],
     "env":      ["data/environments.yml"],
     "project":  ["data/projects.yml", "data/apps.yml"],
@@ -1821,27 +1819,6 @@ def _print_env_detail(env: "EnvironmentEntry") -> None:
             print(f"    {slug}: {path}")
     if env.absent:
         print(f"\n  Ausentes: {', '.join(env.absent)}")
-    # Show skills installed on this environment
-    from .scanner import read_data
-    env_skills_data = read_data().get("skills", {})
-    global_skills = []
-    repo_skills = []
-    for slug, info in env_skills_data.items():
-        host_info = info.get("presence", {}).get(env.hostname)
-        if not host_info:
-            continue
-        title = info.get("title", slug)
-        if host_info.get("global"):
-            global_skills.append(title)
-        else:
-            repos = ", ".join(host_info.get("repos", []))
-            repo_skills.append(f"{title} ({repos})")
-    if global_skills or repo_skills:
-        print("\n  Skills:")
-        if global_skills:
-            print(f"    \U0001F310 {', '.join(sorted(global_skills))}")
-        if repo_skills:
-            print(f"    \U0001F4E6 {', '.join(sorted(repo_skills))}")
 
 
 def cmd_env_setup(args: argparse.Namespace) -> None:
@@ -2106,202 +2083,6 @@ def cmd_app(args: argparse.Namespace) -> int:
             print("Uso: nexus app convert-to-project <query>")
             return 1
         return cmd_app_convert_to_project(args)
-    else:
-        print(f"Subcomando desconhecido: {subcmd}")
-        return 1
-    return 0
-
-
-# -- Skill commands --
-
-def cmd_skill_list():
-    """List all cataloged skills with presence info."""
-    from .skills import load_skills
-    from .scanner import read_data
-
-    data = read_data()
-    skills_data = data.get("skills", {})
-
-    # Merge with manual catalog
-    manual = load_skills()
-    for s in manual:
-        if s.slug not in skills_data:
-            skills_data[s.slug] = {"title": s.title, "url": s.url, "presence": {}}
-
-    if not skills_data:
-        print("Nenhum skill catalogado.")
-        return
-
-    for slug, info in sorted(skills_data.items()):
-        presence = info.get("presence", {})
-        if not presence:
-            badge = "\u2753"
-            presence_str = ""
-        elif any(v.get("global") for v in presence.values()):
-            badge = "\U0001F310"
-            parts = []
-            for h, v in presence.items():
-                if v.get("global"):
-                    parts.append(h)
-                else:
-                    repos = ", ".join(v.get("repos", []))
-                    parts.append(f"{h} ({repos})")
-            presence_str = ", ".join(parts)
-        else:
-            badge = "\U0001F4E6"
-            parts = []
-            for h, v in presence.items():
-                repos = ", ".join(v.get("repos", []))
-                parts.append(f"{h} ({repos})")
-            presence_str = ", ".join(parts)
-
-        title = info.get("title", slug)
-        print(f"  {badge} {title} [{slug}]  {presence_str}")
-        url = info.get("url")
-        if url:
-            print(f"    {url}")
-
-
-def cmd_skill_add():
-    """Add a skill to the catalog interactively."""
-    from .skills import SkillEntry, save_skill_entry
-    from datetime import date
-    try:
-        title = input("Nome/título do skill: ").strip()
-        if not title:
-            print("Título é obrigatório.")
-            return
-        url = input("URL/repositório: ").strip() or None
-    except KeyboardInterrupt:
-        print("\nCancelado.")
-        return
-    slug = title.lower().replace(" ", "-")
-    entry = SkillEntry(
-        title=title,
-        slug=slug,
-        url=url,
-        added=date.today().isoformat(),
-    )
-    save_skill_entry(entry)
-    print(f"Skill '{title}' adicionado ao catálogo.")
-
-
-def cmd_skill_edit(query):
-    """Edit a skill in the external editor."""
-    from .skills import resolve_skill, SKILLS_DIR
-    entry, candidates = resolve_skill(query)
-    if entry is None:
-        if candidates:
-            print("Múltiplos skills encontrados:")
-            for c in candidates:
-                print(f"  {c.title} [{c.slug}]")
-        else:
-            print(f"Skill não encontrado: {query}")
-        return
-    path = SKILLS_DIR / f"{entry.slug}.md"
-    editor = get_default_editor()
-    if not editor:
-        print("Nenhum editor configurado. Use 'nexus codex editor add' para configurar.")
-        return
-    open_in_editor(editor, str(path))
-    if editor.type != "terminal":
-        input("Pressione Enter quando terminar de editar...")
-    print(f"Skill '{entry.title}' editado.")
-
-
-def cmd_skill_remove(query):
-    """Remove a skill from the catalog."""
-    from .skills import resolve_skill, remove_skill
-    entry, candidates = resolve_skill(query)
-    if entry is None:
-        if candidates:
-            print("Múltiplos skills encontrados:")
-            for c in candidates:
-                print(f"  {c.title} [{c.slug}]")
-        else:
-            print(f"Skill não encontrado: {query}")
-        return
-    try:
-        confirm = input(f"Remover skill '{entry.title}'? (s/N) ").strip().lower()
-    except KeyboardInterrupt:
-        print("\nCancelado.")
-        return
-    if confirm != "s":
-        print("Cancelado.")
-        return
-    remove_skill(entry.slug)
-    print(f"Skill '{entry.title}' removido.")
-
-
-def cmd_skill_gaps():
-    """Show skill presence gaps across environments."""
-    import json
-    from . import DATA_JSON
-    if not DATA_JSON.exists():
-        print("data.json não encontrado. Execute 'nexus scan' primeiro.")
-        return
-    with open(DATA_JSON) as f:
-        data = json.load(f)
-
-    skills_data = data.get("skills", {})
-    envs = data.get("environments", [])
-    all_hostnames = {e["hostname"] for e in envs}
-
-    if not skills_data or not all_hostnames:
-        print("Nenhum skill ou environment detectado.")
-        return
-
-    has_gaps = False
-    for slug, info in sorted(skills_data.items()):
-        presence = info.get("presence", {})
-        if not presence:
-            continue  # Manual skill, no gap
-
-        present_hosts = set(presence.keys())
-        absent_hosts = all_hostnames - present_hosts
-        title = info.get("title", slug)
-
-        # Gap: absent in some environments
-        if absent_hosts:
-            has_gaps = True
-            print(f"\n  \u26A0 {title} \u2014 presente em {', '.join(sorted(present_hosts))}, "
-                  f"ausente em {', '.join(sorted(absent_hosts))}")
-
-        # Gap: global in some, repo-only in others (only if NOT already absent)
-        if not absent_hosts:
-            global_hosts = {h for h, v in presence.items() if v.get("global")}
-            repo_hosts = {h for h, v in presence.items() if not v.get("global")}
-            if global_hosts and repo_hosts:
-                has_gaps = True
-                for h in sorted(repo_hosts):
-                    repos = ", ".join(presence[h].get("repos", []))
-                    print(f"\n  \u26A0 {title} \u2014 global em {', '.join(sorted(global_hosts))}, "
-                          f"apenas repo em {h} ({repos})")
-
-    if not has_gaps:
-        print("Todos os ambientes estão atualizados.")
-
-
-def cmd_skill(args: argparse.Namespace) -> int:
-    subcmd = getattr(args, "skill_cmd", None) or "list"
-    if subcmd == "list":
-        cmd_skill_list()
-    elif subcmd == "add":
-        cmd_skill_add()
-    elif subcmd == "edit":
-        query = getattr(args, "query", None)
-        if not query:
-            print("Uso: nexus skill edit <query>")
-            return 1
-        cmd_skill_edit(query)
-    elif subcmd == "remove":
-        query = getattr(args, "query", None)
-        if not query:
-            print("Uso: nexus skill remove <query>")
-            return 1
-        cmd_skill_remove(query)
-    elif subcmd == "gaps":
-        cmd_skill_gaps()
     else:
         print(f"Subcomando desconhecido: {subcmd}")
         return 1
@@ -2947,17 +2728,6 @@ def build_parser() -> argparse.ArgumentParser:
     app_note.add_argument("query", nargs="?")
     app_convert = app_sub.add_parser("convert-to-project", help="Converter app para projeto")
     app_convert.add_argument("query")
-
-    p_skill = sub.add_parser("skill", help="Catálogo de skills")
-    p_skill.set_defaults(func=cmd_skill)
-    skill_sub = p_skill.add_subparsers(dest="skill_cmd")
-    skill_sub.add_parser("list", help="Listar skills")
-    skill_sub.add_parser("add", help="Adicionar skill")
-    skill_edit = skill_sub.add_parser("edit", help="Editar skill")
-    skill_edit.add_argument("query", nargs="?")
-    skill_remove = skill_sub.add_parser("remove", help="Remover skill")
-    skill_remove.add_argument("query", nargs="?")
-    skill_sub.add_parser("gaps", help="Mostrar gaps de versão")
 
     return parser
 

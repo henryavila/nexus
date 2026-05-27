@@ -29,12 +29,6 @@ def test_codex_add(tmp_path, monkeypatch):
     assert result.exit_code == 0
 
 
-def test_skill_add(tmp_path, monkeypatch):
-    monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path))
-    result = runner.invoke(app, ["skill", "add", "TDD"])
-    assert result.exit_code == 0
-
-
 def test_env_list(tmp_path, monkeypatch):
     monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path))
     result = runner.invoke(app, ["env", "list"])
@@ -129,28 +123,6 @@ def test_codex_edit(tmp_path, monkeypatch):
 def test_codex_edit_not_found(tmp_path, monkeypatch):
     monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path))
     result = runner.invoke(app, ["codex", "edit", "nonexistent", "--kind", "x"])
-    assert result.exit_code == 1
-
-
-# --- Skill disambiguation ---
-
-def test_skill_remove_not_found(tmp_path, monkeypatch):
-    monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path))
-    result = runner.invoke(app, ["skill", "remove", "nonexistent"])
-    assert result.exit_code == 1
-
-
-def test_skill_edit(tmp_path, monkeypatch):
-    monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path))
-    runner.invoke(app, ["skill", "add", "TDD"])
-    result = runner.invoke(app, ["skill", "edit", "tdd", "--scope", "project"])
-    assert result.exit_code == 0
-    assert "atualizada" in result.stdout
-
-
-def test_skill_edit_not_found(tmp_path, monkeypatch):
-    monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path))
-    result = runner.invoke(app, ["skill", "edit", "nonexistent", "--scope", "x"])
     assert result.exit_code == 1
 
 

@@ -22,10 +22,6 @@ class SyncService:
         codex_dir = self._config.codex_dir
         if codex_dir.exists():
             data_files.append("codex/")
-        skills_dir = self._config.skills_dir
-        if skills_dir.exists():
-            for md in skills_dir.glob("*.md"):
-                data_files.append(f"skills/{md.name}")
         return git_sync.commit_and_push(self._repo_path, data_files, command)
 
     def pull(self) -> tuple[bool, str]:

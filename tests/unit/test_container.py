@@ -10,7 +10,6 @@ def test_container_creates_all_services(tmp_path):
     assert container.apps is not None
     assert container.ideas is not None
     assert container.codex is not None
-    assert container.skills is not None
     assert container.environments is not None
     assert container.sync is not None
 

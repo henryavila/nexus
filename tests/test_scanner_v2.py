@@ -248,13 +248,11 @@ class TestDataJsonV3(unittest.TestCase):
         self.projects_yml = Path(self.tmpdir.name) / "projects.yml"
         self.env_yml = Path(self.tmpdir.name) / "environments.yml"
         self.apps_yml = Path(self.tmpdir.name) / "apps.yml"
-        self.skills_dir = Path(self.tmpdir.name) / "skills"
         self.patches = [
             patch("nexus.scanner.DATA_JSON", self.data_json),
             patch("nexus.registry.PROJECTS_YML", self.projects_yml),
             patch("nexus.environment.ENVIRONMENTS_YML", self.env_yml),
             patch("nexus.apps.APPS_YML", self.apps_yml),
-            patch("nexus.skills.SKILLS_DIR", self.skills_dir),
         ]
         for p in self.patches:
             p.start()
@@ -270,7 +268,6 @@ class TestDataJsonV3(unittest.TestCase):
         self.assertEqual(data["version"], "3.0")
         self.assertIn("environments", data)
         self.assertIn("apps", data)
-        self.assertIn("skills", data)
         self.assertIn("projects", data)
         self.assertIn("ideas", data)
         self.assertIn("codex", data)
@@ -289,8 +286,7 @@ class TestDataJsonV3(unittest.TestCase):
             }],
             "environments": [],
             "apps": [],
-            "skills": {},
-            "ideas": [],
+                        "ideas": [],
             "codex": [],
         }
         self.data_json.write_text(json.dumps(existing))
@@ -313,7 +309,6 @@ class TestDataJsonV3(unittest.TestCase):
         self.assertEqual(data["version"], "3.0")
         self.assertIn("environments", data)
         self.assertIn("apps", data)
-        self.assertIn("skills", data)
         # Existing data preserved
         self.assertEqual(len(data["projects"]), 1)
         self.assertEqual(len(data["ideas"]), 1)
@@ -419,8 +414,7 @@ class TestDataJsonV3(unittest.TestCase):
                 "projects": [
                     {"name": "proj-renamed", "slug": "proj", "path": ""},
                 ],
-                "apps": [], "environments": [], "skills": {},
-                "ideas": [], "codex": [],
+                "apps": [], "environments": [],                 "ideas": [], "codex": [],
             }
             data_json.write_text(json.dumps(existing))
 
@@ -486,7 +480,6 @@ class TestDataJsonV3(unittest.TestCase):
         self.assertEqual(data["version"], "3.0")
         self.assertIn("environments", data)
         self.assertIn("apps", data)
-        self.assertIn("skills", data)
         # Health should be per-env dict
         proj = data["projects"][0]
         health = proj["health"]
@@ -531,8 +524,7 @@ class TestDataJsonV3(unittest.TestCase):
             }],
             "apps": [],
             "environments": [],
-            "skills": {},
-            "ideas": [],
+                        "ideas": [],
             "codex": [],
         }
         self.data_json.write_text(json.dumps(existing))
@@ -560,13 +552,11 @@ class TestScanAllCancellation(unittest.TestCase):
         self.projects_yml = Path(self.tmpdir.name) / "projects.yml"
         self.env_yml = Path(self.tmpdir.name) / "environments.yml"
         self.apps_yml = Path(self.tmpdir.name) / "apps.yml"
-        self.skills_dir = Path(self.tmpdir.name) / "skills"
         self.patches = [
             patch("nexus.scanner.DATA_JSON", self.data_json),
             patch("nexus.registry.PROJECTS_YML", self.projects_yml),
             patch("nexus.environment.ENVIRONMENTS_YML", self.env_yml),
             patch("nexus.apps.APPS_YML", self.apps_yml),
-            patch("nexus.skills.SKILLS_DIR", self.skills_dir),
         ]
         for p in self.patches:
             p.start()
@@ -676,7 +666,7 @@ class TestScanAllCancellation(unittest.TestCase):
                 {"name": f"proj{i}", "slug": f"proj{i}", "path": str(dirs[i])}
                 for i in range(5)
             ],
-            "apps": [], "environments": [], "skills": {}, "ideas": [], "codex": [],
+            "apps": [], "environments": [], "ideas": [], "codex": [],
         }
         data_json.write_text(json.dumps(existing_data), encoding="utf-8")
 

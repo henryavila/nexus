@@ -131,7 +131,6 @@ from nexus.tui.screens import (
     IdeaDetailScreen,
     CodexDetailScreen,
     CodexOrderScreen,
-    SkillDetailScreen,
     EnvDetailScreen,
     CliSelectScreen,
 )
@@ -237,7 +236,6 @@ _TUI_SYNC_FILES = {
     "idea":    ["data/ideas.yml", "data/projects.yml"],
     "codex":   ["data/codex/"],
     "app":     ["data/apps.yml"],
-    "skill":   ["data/skills/*.md"],
     "env":     ["data/environments.yml"],
     "idea-promote": ["data/ideas.yml", "data/projects.yml", "data/apps.yml"],
     "scan":    None,  # full sync
@@ -316,7 +314,6 @@ class NexusApp(App):
         ("ideas", "Ideias"),
         ("projects", "Projetos"),
         ("apps", "Apps"),
-        ("skills", "Skills"),
         ("environments", "Environments"),
         ("codex", "Codex"),
     ]
@@ -355,7 +352,6 @@ class NexusApp(App):
         self._idea_row_data: dict[RowKey, dict] = {}
         self._app_row_data: dict[RowKey, dict] = {}
         self._codex_row_data: dict[RowKey, dict] = {}
-        self._skill_row_data: dict[RowKey, dict] = {}
         self._env_row_data: dict[RowKey, dict] = {}
         self._group_keys: set[RowKey] = set()
         self._last_cursor_row: int = -1
@@ -379,11 +375,9 @@ class NexusApp(App):
             with TabPane(tab_labels[2], id="apps"):
                 yield DataTable(id="apps-table", cursor_type="row")
                 yield Static("App: software independente que roda sozinho", classes="tab-hint")
-            with TabPane(tab_labels[3], id="skills"):
-                yield DataTable(id="skills-table", cursor_type="row")
-            with TabPane(tab_labels[4], id="environments"):
+            with TabPane(tab_labels[3], id="environments"):
                 yield DataTable(id="environments-table", cursor_type="row")
-            with TabPane(tab_labels[5], id="codex"):
+            with TabPane(tab_labels[4], id="codex"):
                 yield DataTable(id="codex-table", cursor_type="row")
         detail = Static("", id="detail-bar")
         detail.display = False
@@ -394,7 +388,6 @@ class NexusApp(App):
         self._load_projects()
         self._load_ideas()
         self._load_apps()
-        self._load_skills()
         self._load_environments()
         self._load_codex()
         tabs = self.query_one("#tabs", TabbedContent)
@@ -404,7 +397,6 @@ class NexusApp(App):
             "ideas": "#idea-table",
             "projects": "#project-table",
             "apps": "#apps-table",
-            "skills": "#skills-table",
             "environments": "#environments-table",
             "codex": "#codex-table",
         }
@@ -453,7 +445,6 @@ class NexusApp(App):
             "ideas": self._load_ideas,
             "projects": self._load_projects,
             "apps": self._load_apps,
-            "skills": self._load_skills,
             "environments": self._load_environments,
             "codex": self._load_codex,
         }
@@ -469,11 +460,11 @@ class NexusApp(App):
     def check_action(self, action: str, parameters: tuple) -> bool | None:
         """Hide bindings that don't apply to the active tab."""
         active = self._active_tab()
-        all_tabs = {"projects", "ideas", "apps", "codex", "skills", "environments"}
+        all_tabs = {"projects", "ideas", "apps", "codex", "environments"}
         rules = {
             "add_note":          {"projects", "apps"},
             "open_web":          {"projects", "apps"},
-            "add_idea":          {"projects", "ideas", "codex", "apps", "skills"},
+            "add_idea":          {"projects", "ideas", "codex", "apps"},
             "promote_idea":      {"ideas"},
             "toggle_detail_bar": all_tabs,
             "remove_item":       {"projects", "ideas", "apps", "codex"},
@@ -846,70 +837,6 @@ class NexusApp(App):
         self._calc_column_widths("apps-table")
         self._update_detail_bar()
 
-    def _load_skills(self) -> None:
-        scan_data = self._scan_repo.read()
-        skills_data = scan_data.get("skills", {})
-
-        items = []
-        for slug, info in skills_data.items():
-            entry = dict(info)
-            entry["slug"] = slug
-            items.append(entry)
-
-        if self.filter_text:
-            q = self.filter_text.lower()
-            items = [
-                s for s in items
-                if q in (s.get("slug") or "").lower()
-                or q in (s.get("title") or "").lower()
-                or any(q in h.lower() for h in s.get("presence", {}))
-                or any(
-                    q in r.lower()
-                    for v in s.get("presence", {}).values()
-                    for r in v.get("repos", [])
-                )
-            ]
-
-        table = self.query_one("#skills-table", DataTable)
-        table.clear(columns=True)
-        self._skill_row_data.clear()
-
-        table.add_column("Escopo", width=3, key="col_scope")
-        table.add_column("Nome", width=30, key="col_name")
-        table.add_column("Slug", width=20, key="col_slug")
-        table.add_column("Presença", width=40, key="col_presence")
-
-        for s in items:
-            presence = s.get("presence", {})
-            if not presence:
-                badge = "❓"  # ?
-            elif any(v.get("global") for v in presence.values()):
-                badge = "\U0001F310"  # globe
-            else:
-                badge = "\U0001F4E6"  # package
-
-            parts = []
-            for hostname, info in presence.items():
-                if info.get("global"):
-                    parts.append(f"{hostname} (global)")
-                else:
-                    repos = info.get("repos", [])
-                    parts.append(f"{hostname} ({', '.join(repos)})")
-            presence_str = " · ".join(parts)
-
-            slug = s.get("slug", "???")
-            rk = table.add_row(
-                badge,
-                s.get("title", slug),
-                slug,
-                Text(presence_str, style="dim") if presence_str else Text("", style="dim"),
-                key=f"skill:{slug}",
-            )
-            self._skill_row_data[rk] = s
-
-        self._calc_column_widths("skills-table")
-        self._update_detail_bar()
-
     def _load_environments(self) -> None:
         env_models = self._container.environments.list_all()
         envs_data = [e.to_dict() for e in env_models]
@@ -956,7 +883,6 @@ class NexusApp(App):
                 "ideas": self._load_ideas,
                 "projects": self._load_projects,
                 "apps": self._load_apps,
-                "skills": self._load_skills,
                 "environments": self._load_environments,
                 "codex": self._load_codex,
             }
@@ -1009,7 +935,6 @@ class NexusApp(App):
             "ideas": "#idea-table",
             "projects": "#project-table",
             "apps": "#apps-table",
-            "skills": "#skills-table",
             "environments": "#environments-table",
             "codex": "#codex-table",
         }
@@ -1066,16 +991,6 @@ class NexusApp(App):
             title_w = max(remaining, 10)
             if "col_title" in table.columns:
                 table.columns["col_title"].width = title_w
-        elif table_id == "skills-table":
-            fixed = 3 + 20  # escopo, slug
-            n_cols = 4
-            padding = n_cols * 2
-            remaining = max(total - fixed - padding - chrome, 20)
-            name_w = max(int(remaining * 0.3), 10)
-            pres_w = max(remaining - name_w, 10)
-            for key, w in [("col_name", name_w), ("col_presence", pres_w)]:
-                if key in table.columns:
-                    table.columns[key].width = w
         elif table_id == "environments-table":
             fixed = 2 + 20 + 14  # icon, hostname, last_seen
             n_cols = 5
@@ -1092,7 +1007,7 @@ class NexusApp(App):
         active = self._active_tab()
         table_map = {
             "projects": "project-table", "ideas": "idea-table", "apps": "apps-table",
-            "codex": "codex-table", "skills": "skills-table", "environments": "environments-table",
+            "codex": "codex-table", "environments": "environments-table",
         }
         table_id = table_map.get(active)
         if table_id:
@@ -1128,9 +1043,6 @@ class NexusApp(App):
     def _get_selected_codex(self) -> dict | None:
         return self._get_selected_from_table("codex-table")
 
-    def _get_selected_skill(self) -> dict | None:
-        return self._get_selected_from_table("skills-table")
-
     def _get_selected_env(self) -> dict | None:
         return self._get_selected_from_table("environments-table")
 
@@ -1165,20 +1077,10 @@ class NexusApp(App):
                 else:
                     self.notify("App não tem URL configurada", severity="warning")
             return
-        if active == "skills":
-            skill = self._get_selected_skill()
-            if skill:
-                self.push_screen(
-                    SkillDetailScreen(skill),
-                    callback=self._on_skill_detail_dismissed,
-                )
-            return
         if active == "environments":
             env = self._get_selected_env()
             if env:
-                scan_data = self._scan_repo.read()
-                skills_data = scan_data.get("skills", {})
-                self.push_screen(EnvDetailScreen(env, skills_data))
+                self.push_screen(EnvDetailScreen(env))
             return
         if active != "projects":
             return
@@ -1225,12 +1127,6 @@ class NexusApp(App):
             if codex:
                 self.exit(result=("codex_edit", codex.get("slug")))
 
-    def _on_skill_detail_dismissed(self, result: str | None) -> None:
-        if result == "edit":
-            skill = self._get_selected_skill()
-            if skill:
-                self.exit(result=("skill_edit", skill.get("slug")))
-
     def action_edit_item(self) -> None:
         active = self._active_tab()
         if active == "ideas":
@@ -1249,10 +1145,6 @@ class NexusApp(App):
             app = self._get_selected_app()
             if app:
                 self.exit(result=("app_edit", app.get("slug")))
-        elif active == "skills":
-            skill = self._get_selected_skill()
-            if skill:
-                self.exit(result=("skill_edit", skill.get("slug")))
         elif active == "environments":
             env = self._get_selected_env()
             if env:
@@ -1341,10 +1233,6 @@ class NexusApp(App):
             app = self._get_selected_app()
             if app:
                 self.exit(result=("app_remove", app.get("slug")))
-        elif active == "skills":
-            skill = self._get_selected_skill()
-            if skill:
-                self.exit(result=("skill_remove", skill.get("slug")))
         elif active == "environments":
             self.notify("Use 'nexus env' para gerenciar environments", severity="warning")
 
@@ -1356,8 +1244,6 @@ class NexusApp(App):
             self.exit(result=("codex_add", None))
         elif active == "apps":
             self.exit(result=("app_add", None))
-        elif active == "skills":
-            self.exit(result=("skill_add", None))
         elif active == "projects":
             self.exit(result=("add", None))
 
@@ -1386,7 +1272,6 @@ class NexusApp(App):
             "ideas": self._idea_row_data,
             "apps": self._app_row_data,
             "codex": self._codex_row_data,
-            "skills": self._skill_row_data,
             "environments": self._env_row_data,
         }.get(active, {})
 
@@ -1418,7 +1303,7 @@ class NexusApp(App):
         active = self._active_tab()
         table_map = {
             "projects": "project-table", "ideas": "idea-table", "apps": "apps-table",
-            "codex": "codex-table", "skills": "skills-table", "environments": "environments-table",
+            "codex": "codex-table", "environments": "environments-table",
         }
         table_id = table_map.get(active)
         if not table_id:
@@ -1505,30 +1390,6 @@ class NexusApp(App):
             line1 = " · ".join(parts)
             content = (data.get("content") or "")[:80].replace("\n", " ")
             bar.update(f"{line1}\n{content}" if content else line1)
-        elif active == "skills":
-            parts = []
-            slug = data.get("slug", "???")
-            parts.append(f"[bold]{data.get('title', slug)}[/bold]")
-            parts.append(f"slug {slug}")
-            presence = data.get("presence", {})
-            if not presence:
-                parts.append("escopo ❓")
-            elif any(v.get("global") for v in presence.values()):
-                parts.append("escopo \U0001F310 global")
-            else:
-                parts.append("escopo \U0001F4E6 projeto")
-            if data.get("url"):
-                parts.append(f"url {data['url']}")
-            line1 = " · ".join(parts)
-            pres_parts = []
-            for hostname, info in presence.items():
-                if info.get("global"):
-                    pres_parts.append(f"{hostname} (global)")
-                else:
-                    repos = ", ".join(info.get("repos", []))
-                    pres_parts.append(f"{hostname} ({repos})")
-            line2 = " · ".join(pres_parts)
-            bar.update(f"{line1}\n{line2}" if line2 else line1)
         elif active == "environments":
             parts = []
             parts.append(f"[bold]\U0001F5A5️ {data.get('name', '???')}[/bold]")
@@ -1832,41 +1693,6 @@ def run_tui_loop(initial_tab: str = "ideas") -> int:
                 print(f"\nErro: {e}")
             _tui_sync_background("app-note")
             next_tab = "apps"
-
-        # -- Skill actions --
-
-        elif action == "skill_add":
-            from nexus._legacy_main import cmd_skill_add
-            try:
-                cmd_skill_add()
-            except (KeyboardInterrupt, EOFError):
-                print("\nCancelado.")
-            except Exception as e:
-                print(f"\nErro: {e}")
-            _tui_sync_background("skill-add")
-            next_tab = "skills"
-
-        elif action == "skill_edit":
-            from nexus._legacy_main import cmd_skill_edit
-            try:
-                cmd_skill_edit(data)
-            except (KeyboardInterrupt, EOFError):
-                print("\nCancelado.")
-            except Exception as e:
-                print(f"\nErro: {e}")
-            _tui_sync_background("skill-edit")
-            next_tab = "skills"
-
-        elif action == "skill_remove":
-            from nexus._legacy_main import cmd_skill_remove
-            try:
-                cmd_skill_remove(data)
-            except (KeyboardInterrupt, EOFError):
-                print("\nCancelado.")
-            except Exception as e:
-                print(f"\nErro: {e}")
-            _tui_sync_background("skill-remove")
-            next_tab = "skills"
 
         # -- Environment actions --
 

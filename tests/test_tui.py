@@ -9,7 +9,6 @@ try:
         EnvDetailScreen,
         IdeaDetailScreen,
         NexusApp,
-        SkillDetailScreen,
     )
     from textual.widgets.data_table import RowKey
     HAS_TEXTUAL = True
@@ -42,7 +41,6 @@ class TestTuiImport(unittest.TestCase):
              patch.object(app, "_load_ideas"), \
              patch.object(app, "_load_codex"), \
              patch.object(app, "_load_apps"), \
-             patch.object(app, "_load_skills"), \
              patch.object(app, "_load_environments"), \
              patch.object(app, "query_one", return_value=fake_list), \
              patch("nexus.tui.app.threading") as mock_threading:
@@ -359,7 +357,7 @@ class TestNumberKeyTabSwitch(unittest.TestCase):
         self.assertIsInstance(NexusApp.TAB_ORDER, list)
         self.assertEqual(NexusApp.TAB_ORDER[0][0], "ideas")
         self.assertEqual(NexusApp.TAB_ORDER[1][0], "projects")
-        self.assertEqual(NexusApp.TAB_ORDER[5][0], "codex")
+        self.assertEqual(NexusApp.TAB_ORDER[4][0], "codex")
 
     def test_number_bindings_match_tab_order(self):
         """There must be a Binding for each digit 1..len(TAB_ORDER)."""
@@ -592,7 +590,7 @@ class TestCodexTuiActions(unittest.TestCase):
 
 @unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
 class TestCodexTabSwitchIntegration(unittest.IsolatedAsyncioTestCase):
-    async def test_press_6_switches_to_codex(self):
+    async def test_press_5_switches_to_codex(self):
         from textual.widgets import TabbedContent
         with patch("nexus.tui.app.detect_clis", return_value=[CliEntry("claude", "claude", "Claude Code")]):
             with patch("nexus.tui.app.scan_all"):
@@ -603,7 +601,7 @@ class TestCodexTabSwitchIntegration(unittest.IsolatedAsyncioTestCase):
                             await pilot.pause()
                             tabs = app.query_one("#tabs", TabbedContent)
                             self.assertEqual(tabs.active, "ideas")
-                            await pilot.press("6")
+                            await pilot.press("5")
                             await pilot.pause()
                             self.assertEqual(tabs.active, "codex")
 
@@ -630,23 +628,22 @@ class TestTabActivatedGuard(unittest.TestCase):
 
 @unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
 class TestNewTabs(unittest.TestCase):
-    """Tests for the 6-tab TUI layout (Apps, Skills, Environments)."""
+    """Tests for the 5-tab TUI layout (Apps, Environments)."""
 
-    def test_tab_order_has_six_tabs(self):
-        self.assertEqual(len(NexusApp.TAB_ORDER), 6)
+    def test_tab_order_has_five_tabs(self):
+        self.assertEqual(len(NexusApp.TAB_ORDER), 5)
 
     def test_tab_names(self):
         tab_ids = [t[0] for t in NexusApp.TAB_ORDER]
         self.assertIn("apps", tab_ids)
-        self.assertIn("skills", tab_ids)
         self.assertIn("environments", tab_ids)
 
     def test_tab_order_sequence(self):
         tab_ids = [t[0] for t in NexusApp.TAB_ORDER]
-        self.assertEqual(tab_ids, ["ideas", "projects", "apps", "skills", "environments", "codex"])
+        self.assertEqual(tab_ids, ["ideas", "projects", "apps", "environments", "codex"])
 
-    def test_number_bindings_for_all_six_tabs(self):
-        for i in range(6):
+    def test_number_bindings_for_all_five_tabs(self):
+        for i in range(5):
             digit = str(i + 1)
             binding = next((b for b in NexusApp.BINDINGS if b.key == digit), None)
             self.assertIsNotNone(binding, f"Missing binding for key '{digit}'")
@@ -667,19 +664,6 @@ class TestAppRowData(unittest.TestCase):
 
 
 @unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
-class TestSkillRowData(unittest.TestCase):
-    """Skills are now rendered via DataTable; verify _skill_row_data storage works."""
-
-    @patch("nexus.tui.app.detect_clis", return_value=[])
-    def test_skill_row_data_stores_dict(self, _detect):
-        """NexusApp._skill_row_data should be a dict that maps RowKey -> skill dict."""
-        app = NexusApp()
-        skill_data = {"slug": "bmad", "title": "BMAD", "presence": {"H": {"global": True}}}
-        app._skill_row_data[RowKey("skill:bmad")] = skill_data
-        self.assertEqual(app._skill_row_data[RowKey("skill:bmad")]["slug"], "bmad")
-
-
-@unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
 class TestEnvRowData(unittest.TestCase):
     """Environments are now rendered via DataTable; verify _env_row_data storage works."""
 
@@ -690,34 +674,6 @@ class TestEnvRowData(unittest.TestCase):
         env_data = {"hostname": "mypc", "name": "Home PC", "location": "casa", "last_seen": "2026-03-10"}
         app._env_row_data[RowKey("env:mypc")] = env_data
         self.assertEqual(app._env_row_data[RowKey("env:mypc")]["hostname"], "mypc")
-
-
-@unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
-class TestSkillDetailScreen(unittest.TestCase):
-    """SkillDetailScreen modal."""
-
-    def test_skill_detail_screen_exists(self):
-        from textual.screen import ModalScreen
-        self.assertTrue(issubclass(SkillDetailScreen, ModalScreen))
-
-    def test_skill_detail_stores_data(self):
-        skill = {"slug": "bmad", "title": "BMAD", "presence": {"H": {"global": True}}, "url": "https://example.com"}
-        screen = SkillDetailScreen(skill)
-        self.assertEqual(screen.skill_data, skill)
-
-    def test_skill_detail_dismiss_returns_edit(self):
-        skill = {"slug": "bmad", "title": "BMAD"}
-        screen = SkillDetailScreen(skill)
-        screen.dismiss = MagicMock()
-        screen.action_edit_skill()
-        screen.dismiss.assert_called_once_with("edit")
-
-    def test_skill_detail_dismiss_returns_none(self):
-        skill = {"slug": "bmad", "title": "BMAD"}
-        screen = SkillDetailScreen(skill)
-        screen.dismiss = MagicMock()
-        screen.action_dismiss_screen()
-        screen.dismiss.assert_called_once_with(None)
 
 
 @unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
@@ -743,7 +699,7 @@ class TestEnvDetailScreen(unittest.TestCase):
 
 @unittest.skipUnless(HAS_TEXTUAL, "textual not installed")
 class TestNewTabActions(unittest.TestCase):
-    """Actions for apps, skills, environments tabs."""
+    """Actions for apps, environments tabs."""
 
     def test_enter_on_apps_shows_detail_or_opens_web(self):
         """action_launch_project on apps tab with URL opens web."""
@@ -759,27 +715,10 @@ class TestNewTabActions(unittest.TestCase):
             app.action_launch_project()
             mock_open.assert_called_once_with("https://example.com")
 
-    def test_enter_on_skills_shows_detail(self):
-        """action_launch_project on skills tab shows SkillDetailScreen."""
-        app = NexusApp.__new__(NexusApp)
-        app._cli_modal_open = False
-
-        with patch.object(app, '_active_tab', return_value='skills'), \
-             patch.object(app, '_get_selected_skill', return_value={
-                 "slug": "bmad", "title": "BMAD", "presence": {"H": {"global": True}},
-             }), \
-             patch.object(app, 'push_screen') as mock_push:
-            app.action_launch_project()
-            mock_push.assert_called_once()
-            args = mock_push.call_args
-            self.assertIsInstance(args[0][0], SkillDetailScreen)
-
     def test_enter_on_environments_shows_detail(self):
         """action_launch_project on environments tab shows EnvDetailScreen."""
         app = NexusApp.__new__(NexusApp)
         app._cli_modal_open = False
-        app._scan_repo = MagicMock()
-        app._scan_repo.read.return_value = {"projects": [], "skills": {}}
 
         with patch.object(app, '_active_tab', return_value='environments'), \
              patch.object(app, '_get_selected_env', return_value={
@@ -804,19 +743,6 @@ class TestNewTabActions(unittest.TestCase):
             result = app.exit.call_args[1]["result"]
             self.assertEqual(result, ("app_edit", "my-app"))
 
-    def test_edit_on_skills_tab(self):
-        app = NexusApp.__new__(NexusApp)
-        app.exit = MagicMock()
-
-        with patch.object(app, '_active_tab', return_value='skills'), \
-             patch.object(app, '_get_selected_skill', return_value={
-                 "slug": "bmad", "title": "BMAD",
-             }):
-            app.action_edit_item()
-            app.exit.assert_called_once()
-            result = app.exit.call_args[1]["result"]
-            self.assertEqual(result, ("skill_edit", "bmad"))
-
     def test_remove_on_apps_tab(self):
         app = NexusApp.__new__(NexusApp)
         app.exit = MagicMock()
@@ -830,19 +756,6 @@ class TestNewTabActions(unittest.TestCase):
             result = app.exit.call_args[1]["result"]
             self.assertEqual(result, ("app_remove", "my-app"))
 
-    def test_remove_on_skills_tab(self):
-        app = NexusApp.__new__(NexusApp)
-        app.exit = MagicMock()
-
-        with patch.object(app, '_active_tab', return_value='skills'), \
-             patch.object(app, '_get_selected_skill', return_value={
-                 "slug": "bmad", "title": "BMAD",
-             }):
-            app.action_remove_item()
-            app.exit.assert_called_once()
-            result = app.exit.call_args[1]["result"]
-            self.assertEqual(result, ("skill_remove", "bmad"))
-
     def test_add_on_apps_tab(self):
         app = NexusApp.__new__(NexusApp)
         app.exit = MagicMock()
@@ -852,16 +765,6 @@ class TestNewTabActions(unittest.TestCase):
             app.exit.assert_called_once()
             result = app.exit.call_args[1]["result"]
             self.assertEqual(result, ("app_add", None))
-
-    def test_add_on_skills_tab(self):
-        app = NexusApp.__new__(NexusApp)
-        app.exit = MagicMock()
-
-        with patch.object(app, '_active_tab', return_value='skills'):
-            app.action_add_idea()
-            app.exit.assert_called_once()
-            result = app.exit.call_args[1]["result"]
-            self.assertEqual(result, ("skill_add", None))
 
     def test_note_on_apps_tab(self):
         app = NexusApp.__new__(NexusApp)
@@ -900,18 +803,6 @@ class TestNewTabActions(unittest.TestCase):
         app.on_data_table_row_selected(event)
         app.action_launch_project.assert_called_once()
 
-    def test_on_data_table_row_selected_handles_skill_row(self):
-        app = NexusApp.__new__(NexusApp)
-        app._cli_modal_open = False
-        app._group_keys = set()
-        app.action_launch_project = MagicMock()
-
-        event = MagicMock()
-        event.row_key = RowKey("skill:bmad")
-
-        app.on_data_table_row_selected(event)
-        app.action_launch_project.assert_called_once()
-
     def test_on_data_table_row_selected_handles_env_row(self):
         app = NexusApp.__new__(NexusApp)
         app._cli_modal_open = False
@@ -944,7 +835,7 @@ class TestNewTabSwitchIntegration(unittest.IsolatedAsyncioTestCase):
                             await pilot.pause()
                             self.assertEqual(tabs.active, "apps")
 
-    async def test_press_6_switches_to_codex(self):
+    async def test_press_5_switches_to_codex(self):
         from textual.widgets import TabbedContent
         with patch("nexus.tui.app.detect_clis", return_value=[CliEntry("claude", "claude", "Claude Code")]):
             with patch("nexus.tui.app.scan_all"):
@@ -954,7 +845,7 @@ class TestNewTabSwitchIntegration(unittest.IsolatedAsyncioTestCase):
                         async with app.run_test() as pilot:
                             await pilot.pause()
                             tabs = app.query_one("#tabs", TabbedContent)
-                            await pilot.press("6")
+                            await pilot.press("5")
                             await pilot.pause()
                             self.assertEqual(tabs.active, "codex")
 
@@ -1108,7 +999,6 @@ class TestBackgroundScanDaemonThread(unittest.TestCase):
              patch.object(app, "_load_ideas"), \
              patch.object(app, "_load_codex"), \
              patch.object(app, "_load_apps"), \
-             patch.object(app, "_load_skills"), \
              patch.object(app, "_load_environments"), \
              patch.object(app, "query_one", return_value=fake_list), \
              patch.object(app, "run_worker") as mock_run_worker, \
@@ -1128,7 +1018,6 @@ class TestBackgroundScanDaemonThread(unittest.TestCase):
              patch.object(app, "_load_ideas"), \
              patch.object(app, "_load_codex"), \
              patch.object(app, "_load_apps"), \
-             patch.object(app, "_load_skills"), \
              patch.object(app, "_load_environments"), \
              patch.object(app, "query_one", return_value=fake_list), \
              patch("nexus.tui.app.threading") as mock_threading:

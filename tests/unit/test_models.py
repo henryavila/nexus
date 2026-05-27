@@ -1,4 +1,4 @@
-from nexus.models import Project, App, Idea, CodexEntry, Skill, Environment
+from nexus.models import Project, App, Idea, CodexEntry, Environment
 
 
 def test_project_defaults():
@@ -58,12 +58,6 @@ def test_codex_entry_defaults():
     assert c.kind == "referência"
     assert c.order is None
     assert c.content == ""
-
-
-def test_skill_defaults():
-    s = Skill(title="My Skill")
-    assert s.scope == "global"
-    assert s.slug == ""
 
 
 def test_environment_defaults():

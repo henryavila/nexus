@@ -12,7 +12,6 @@ def nexus_env(tmp_path):
     ideas_yml = data_dir / "ideas.yml"
     apps_yml = data_dir / "apps.yml"
     env_yml = data_dir / "environments.yml"
-    skills_dir = data_dir / "skills"
     codex_dir = data_dir / "codex"
     data_json = tmp_path / "data.json"
     lock_file = tmp_path / ".nexus.lock"
@@ -32,7 +31,6 @@ def nexus_env(tmp_path):
         patch("nexus.codex.CODEX_DIR", codex_dir),
         patch("nexus.codex.DATA_JSON", data_json),
         patch("nexus.codex.LOCK_FILE", lock_file),
-        patch("nexus.skills.SKILLS_DIR", skills_dir),
         patch("nexus.scanner.DATA_JSON", data_json),
         patch("nexus.scanner.LOCK_FILE", lock_file),
         patch("nexus.environment.ENVIRONMENTS_YML", env_yml),
@@ -42,20 +40,17 @@ def nexus_env(tmp_path):
         patch("nexus.APPS_YML", apps_yml),
         patch("nexus.IDEAS_YML", ideas_yml),
         patch("nexus.ENVIRONMENTS_YML", env_yml),
-        patch("nexus.SKILLS_DIR", skills_dir),
         patch("nexus.PROJECTS_YML", projects_yml),
         patch("nexus.DATA_DIR", data_dir),
         # Local config (editors read/write ~/.config/nexus/local.yml)
         patch("nexus.local_config.LOCAL_CONFIG_PATH", local_config_path),
         # Isolate from real ~/.claude/settings.json
-        patch("nexus.skills._CLAUDE_SETTINGS_PATH", tmp_path / "fake-claude" / "settings.json"),
     ]
     for p in patches:
         p.start()
 
     # Make dirs that code expects to exist
     codex_dir.mkdir(exist_ok=True)
-    skills_dir.mkdir(exist_ok=True)
 
     yield tmp_path
 

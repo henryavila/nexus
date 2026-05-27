@@ -90,27 +90,6 @@ class TestAutoSyncNewFiles(unittest.TestCase):
         )
         self.assertEqual(show.returncode, 0)
 
-    def test_stages_skills_md_only(self):
-        skills_dir = self.repo / "data" / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "test.md").write_text("---\ntitle: test\n---\n")
-        (skills_dir / "temp.swp").write_text("junk")
-        from nexus.sync import auto_sync_registry
-        result = auto_sync_registry(str(self.repo), "test")
-        self.assertTrue(result)
-        # .md file should be committed
-        show_md = subprocess.run(
-            ["git", "show", "HEAD:data/skills/test.md"],
-            cwd=self.repo, capture_output=True, text=True,
-        )
-        self.assertEqual(show_md.returncode, 0)
-        # .swp file should NOT be committed
-        show_swp = subprocess.run(
-            ["git", "show", "HEAD:data/skills/temp.swp"],
-            cwd=self.repo, capture_output=True, text=True,
-        )
-        self.assertNotEqual(show_swp.returncode, 0)
-
     def test_no_error_when_apps_yml_missing(self):
         """auto_sync_registry should succeed even if apps.yml doesn't exist."""
         from nexus.sync import auto_sync_registry
@@ -192,19 +171,19 @@ class TestCommitAndPush(unittest.TestCase):
         self.assertEqual(msg.stdout.strip(), "[nexus-auto] edit sync")
 
     def test_glob_pattern_expands_and_filters(self):
-        """Glob patterns like 'data/skills/*.md' expand to only .md files."""
+        """Glob patterns like 'data/codex/*.md' expand to only .md files."""
         from nexus.sync import _commit_and_push
-        skills = self.repo / "data" / "skills"
-        skills.mkdir()
-        (skills / "test.md").write_text("# skill\n")
-        (skills / "temp.swp").write_text("junk")
+        codex = self.repo / "data" / "codex"
+        codex.mkdir()
+        (codex / "test.md").write_text("# guide\n")
+        (codex / "temp.swp").write_text("junk")
         subprocess.run(["git", "add", "."], cwd=self.repo, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "add skills dir"],
+        subprocess.run(["git", "commit", "-m", "add codex dir"],
                        cwd=self.repo, capture_output=True)
-        (skills / "test.md").write_text("# updated\n")
-        (skills / "temp.swp").write_text("more junk")
+        (codex / "test.md").write_text("# updated\n")
+        (codex / "temp.swp").write_text("more junk")
         result = _commit_and_push(
-            str(self.repo), ["data/skills/*.md"], "skill-edit"
+            str(self.repo), ["data/codex/*.md"], "codex-edit"
         )
         self.assertTrue(result)
         show = subprocess.run(
@@ -218,7 +197,7 @@ class TestCommitAndPush(unittest.TestCase):
         """Glob on non-existent dir returns True (no files = no changes)."""
         from nexus.sync import _commit_and_push
         result = _commit_and_push(
-            str(self.repo), ["data/skills/*.md"], "skill-edit"
+            str(self.repo), ["data/codex/*.md"], "codex-edit"
         )
         self.assertTrue(result)
 

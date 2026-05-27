@@ -6,10 +6,9 @@ from nexus.repositories.project_repo import ProjectRepository
 from nexus.repositories.app_repo import AppRepository
 from nexus.repositories.idea_repo import IdeaRepository
 from nexus.repositories.codex_repo import CodexRepository
-from nexus.repositories.skill_repo import SkillRepository
 from nexus.repositories.environment_repo import EnvironmentRepository
 from nexus.repositories.scan_repo import ScanRepository
-from nexus.models import Project, App, Idea, CodexEntry, Skill, Environment
+from nexus.models import Project, App, Idea, CodexEntry, Environment
 
 
 @pytest.fixture
@@ -62,13 +61,6 @@ def test_codex_repo_crud(cfg):
     assert repo.get("guide").title == "Guide"
     repo.remove("guide")
     assert repo.get("guide") is None
-
-
-def test_skill_repo_crud(cfg):
-    cfg.skills_dir.mkdir(parents=True, exist_ok=True)
-    repo = SkillRepository(cfg)
-    repo.save(Skill(slug="tdd", title="TDD", content="Test first"))
-    assert repo.get("tdd").title == "TDD"
 
 
 def test_environment_repo_crud(cfg):

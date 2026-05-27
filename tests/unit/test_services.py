@@ -5,10 +5,9 @@ from nexus.services.project_service import ProjectService
 from nexus.services.app_service import AppService
 from nexus.services.idea_service import IdeaService
 from nexus.services.codex_service import CodexService
-from nexus.services.skill_service import SkillService
 from nexus.services.environment_service import EnvironmentService
 from nexus.services.sync_service import SyncService
-from nexus.models import Project, App, Idea, CodexEntry, Skill, Environment
+from nexus.models import Project, App, Idea, CodexEntry, Environment
 
 
 @pytest.fixture
@@ -160,40 +159,6 @@ def test_resolve_all_codex(cfg, sync):
     svc.add("Guide A", kind="guia")
     results = svc.resolve_all("Guide A")
     assert len(results) == 1
-
-
-# --- SkillService ---
-
-def test_add_skill(cfg, sync):
-    svc = SkillService(cfg, sync)
-    s = svc.add("TDD Skill", scope="global")
-    assert s.slug == "tdd-skill"
-
-
-def test_edit_skill(cfg, sync):
-    svc = SkillService(cfg, sync)
-    svc.add("TDD Skill", scope="global")
-    updated = svc.edit("tdd-skill", scope="project")
-    assert updated.scope == "project"
-
-
-def test_edit_skill_by_title(cfg, sync):
-    svc = SkillService(cfg, sync)
-    svc.add("TDD Skill", scope="global")
-    updated = svc.edit("TDD Skill", url="https://example.com")
-    assert updated.url == "https://example.com"
-
-
-def test_edit_skill_not_found(cfg, sync):
-    svc = SkillService(cfg, sync)
-    assert svc.edit("nonexistent", scope="x") is None
-
-
-def test_remove_skill(cfg, sync):
-    svc = SkillService(cfg, sync)
-    svc.add("X")
-    assert svc.remove("x") is not None
-    assert svc.list_all() == []
 
 
 # --- EnvironmentService ---

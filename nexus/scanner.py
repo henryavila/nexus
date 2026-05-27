@@ -253,7 +253,6 @@ def _read_data() -> dict:
             "projects": [],
             "apps": [],
             "environments": [],
-            "skills": {},
             "ideas": [],
             "codex": [],
         }
@@ -265,7 +264,6 @@ def _read_data() -> dict:
         data.setdefault("current_environment", None)
         data.setdefault("apps", [])
         data.setdefault("environments", [])
-        data.setdefault("skills", {})
         data.setdefault("ideas", [])
         data.setdefault("codex", [])
     return data
@@ -396,34 +394,6 @@ def scan_all(on_progress=None, cancelled=None) -> dict:
     env_dicts = [{"hostname": e.hostname, "name": e.name, "location": e.location,
                   "last_seen": e.last_seen} for e in env_entries]
 
-    # Detect skills with presence (global + repo)
-    from .skills import detect_skills_for_scan, load_skills
-
-    existing_skills = existing_data.get("skills", {})
-    skills_dict = detect_skills_for_scan(projects, existing_skills, hostname)
-
-    # Merge with manually cataloged skills (preserve existing presence)
-    for s in load_skills():
-        if s.slug not in skills_dict:
-            prev = existing_skills.get(s.slug, {})
-            skills_dict[s.slug] = {
-                "title": s.title,
-                "url": s.url,
-                "presence": prev.get("presence", {}),
-            }
-
-    # Preserve skills from other hostnames not detected locally
-    for slug, info in existing_skills.items():
-        if slug not in skills_dict:
-            old_presence = dict(info.get("presence", {}))
-            old_presence.pop(hostname, None)
-            if old_presence:
-                skills_dict[slug] = {
-                    "title": info.get("title", slug),
-                    "url": info.get("url"),
-                    "presence": old_presence,
-                }
-
     data = {
         "version": "3.0",
         "last_full_scan": datetime.now().isoformat(timespec="seconds"),
@@ -431,7 +401,6 @@ def scan_all(on_progress=None, cancelled=None) -> dict:
         "projects": projects,
         "apps": app_dicts,
         "environments": env_dicts,
-        "skills": skills_dict,
         "ideas": idea_dicts,
         "codex": codex_dicts,
     }

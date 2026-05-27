@@ -17,7 +17,6 @@ from nexus.tui.screens import (
     CodexDetailScreen,
     CodexSectionPickerScreen,
     CodexOrderScreen,
-    SkillDetailScreen,
     EnvDetailScreen,
     CliSelectScreen,
 )
