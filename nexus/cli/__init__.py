@@ -8,8 +8,15 @@ from nexus.services import ServiceContainer
 app = typer.Typer(
     name="nexus",
     help="CLI para catalogar, escanear e lançar projetos de agentes IA",
-    no_args_is_help=True,
+    invoke_without_command=True,
 )
+
+
+@app.callback(invoke_without_command=True)
+def _default(ctx: typer.Context):
+    if ctx.invoked_subcommand is None:
+        from nexus.tui import run_tui
+        raise typer.Exit(run_tui())
 
 
 def get_container() -> ServiceContainer:

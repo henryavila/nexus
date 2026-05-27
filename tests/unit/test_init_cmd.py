@@ -18,10 +18,13 @@ def test_init_creates_data_dir(tmp_path, monkeypatch):
 
 def test_init_with_custom_path(tmp_path, monkeypatch):
     monkeypatch.setenv("NEXUS_DATA_DIR", str(tmp_path / "default"))
+    fake_config = tmp_path / "config" / "local.yml"
+    monkeypatch.setattr("nexus.config._DEFAULT_CONFIG_PATH", fake_config)
     custom = tmp_path / "custom-data"
     result = runner.invoke(app, ["init", "--data-dir", str(custom)])
     assert result.exit_code == 0
     assert custom.exists()
+    assert fake_config.exists()
 
 
 def test_init_idempotent(tmp_path, monkeypatch):
