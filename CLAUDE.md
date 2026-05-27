@@ -13,7 +13,7 @@
 nexus/
 ├── config.py              # NexusConfig — resolução de data_dir
 ├── constants.py            # domínios, naturezas, kinds
-├── models/                 # dataclasses: Project, App, Idea, CodexEntry, Skill, Environment
+├── models/                 # dataclasses: Project, App, Idea, CodexEntry, Environment
 ├── repositories/           # YamlRepository, MarkdownRepository + concretas
 ├── services/               # ServiceContainer + serviços por entidade
 ├── infra/                  # file_lock, path_resolver, git_sync
@@ -38,7 +38,7 @@ nexus init
 # Migrar dados de diretório antigo
 nexus migrate --from data
 
-# Rodar testes (~991 testes)
+# Rodar testes (~775 testes)
 python -m pytest tests/ -v
 
 # Rodar só testes novos (unit)
@@ -75,7 +75,6 @@ nexus --help
 - `cmd_project_convert_to_app`, `cmd_app_convert_to_project`
 - `cmd_idea_promote` (idea → project/app)
 - `cmd_codex_editor_*` (editor management)
-- `cmd_skill_gaps` (skill coverage analysis)
 - `_auto_update()` (update checker)
 - `_cmd_add_interactive` (guided project creation)
 - Full `scanner.py` logic (scan_project, scan_all, git/filesystem analysis)
