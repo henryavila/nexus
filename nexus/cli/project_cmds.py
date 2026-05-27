@@ -47,10 +47,16 @@ def list_projects(
 @app.command("remove")
 def remove_project(query: str = typer.Argument(..., help="Slug ou nome do projeto")):
     container = get_container()
-    entry = container.projects.resolve(query)
-    if entry is None:
+    candidates = container.projects._repo.resolve_all(query)
+    if not candidates:
         typer.echo(f"Projeto '{query}' não encontrado.", err=True)
         raise typer.Exit(1)
+    if len(candidates) > 1:
+        typer.echo(f"Múltiplos projetos encontrados para '{query}'. Use o slug:")
+        for c in candidates:
+            typer.echo(f"  {c.name} ({c.slug}) — {c.domain}/{c.nature}")
+        raise typer.Exit(1)
+    entry = candidates[0]
     confirm = typer.confirm(f"Remover '{entry.name}' ({entry.slug})?")
     if not confirm:
         raise typer.Abort()

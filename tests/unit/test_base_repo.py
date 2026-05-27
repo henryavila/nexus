@@ -85,6 +85,34 @@ def test_resolve_no_match(repo):
     assert repo.resolve("beta") is None
 
 
+def test_resolve_all_duplicate_name(repo):
+    repo.add(Project(name="codeguard", slug="codeguard", domain="tech", nature="ferramenta"))
+    repo.add(Project(name="codeguard", slug="codeguard-2", domain="pessoal", nature="contexto"))
+    results = repo.resolve_all("codeguard")
+    slugs = {r.slug for r in results}
+    assert slugs == {"codeguard", "codeguard-2"}
+
+
+def test_resolve_all_exact_slug_returns_one(repo):
+    repo.add(Project(name="codeguard", slug="codeguard", domain="tech"))
+    repo.add(Project(name="codeguard", slug="codeguard-2", domain="pessoal"))
+    results = repo.resolve_all("codeguard-2")
+    assert len(results) == 1
+    assert results[0].slug == "codeguard-2"
+
+
+def test_resolve_all_unique_name(repo):
+    repo.add(Project(name="alpha", slug="alpha"))
+    results = repo.resolve_all("alpha")
+    assert len(results) == 1
+    assert results[0].slug == "alpha"
+
+
+def test_resolve_all_no_match(repo):
+    repo.add(Project(name="alpha", slug="alpha"))
+    assert repo.resolve_all("nonexistent") == []
+
+
 # --- MarkdownRepository ---
 
 @pytest.fixture

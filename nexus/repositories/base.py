@@ -88,23 +88,38 @@ class YamlRepository(Generic[T]):
         return None
 
     def resolve(self, query: str) -> T | None:
+        results = self.resolve_all(query)
+        return results[0] if results else None
+
+    def resolve_all(self, query: str) -> list[T]:
         items = self.load_all()
         q = query.lower().strip()
+        slug_hit = None
         for item in items:
             if getattr(item, self._id_field, "").lower() == q:
-                return item
-        for item in items:
-            name = getattr(item, "name", None) or getattr(item, "title", None) or ""
-            if name.lower() == q:
-                return item
-        for item in items:
-            if q in getattr(item, self._id_field, "").lower():
-                return item
-        for item in items:
-            name = getattr(item, "name", None) or getattr(item, "title", None) or ""
-            if q in name.lower():
-                return item
-        return None
+                slug_hit = item
+                break
+        by_name = [
+            item for item in items
+            if (getattr(item, "name", None) or getattr(item, "title", None) or "").lower() == q
+        ]
+        if slug_hit and not by_name:
+            return [slug_hit]
+        if by_name:
+            if slug_hit and slug_hit not in by_name:
+                return [slug_hit] + by_name
+            return by_name
+        by_partial_id = [
+            item for item in items
+            if q in getattr(item, self._id_field, "").lower()
+        ]
+        if by_partial_id:
+            return by_partial_id
+        by_partial_name = [
+            item for item in items
+            if q in (getattr(item, "name", None) or getattr(item, "title", None) or "").lower()
+        ]
+        return by_partial_name
 
 
 class MarkdownRepository(Generic[T]):
