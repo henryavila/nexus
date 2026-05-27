@@ -38,5 +38,8 @@ class AppService:
     def resolve(self, query: str) -> App | None:
         return self._repo.resolve(query)
 
+    def resolve_all(self, query: str) -> list[App]:
+        return self._repo.resolve_all(query)
+
     def list_all(self) -> list[App]:
         return self._repo.load_all()

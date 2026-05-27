@@ -1,6 +1,6 @@
 from __future__ import annotations
 import typer
-from nexus.cli import app, get_container
+from nexus.cli import app, get_container, disambiguate
 from nexus.cli.formatters import rel_date
 
 idea_app = typer.Typer(help="Gerenciar ideias")
@@ -47,20 +47,19 @@ def idea_edit(
     if not kwargs:
         typer.echo("Nenhum campo para editar.", err=True)
         raise typer.Exit(1)
-    updated = container.ideas.edit(query, **kwargs)
-    if updated is None:
-        typer.echo(f"Ideia '{query}' não encontrada.", err=True)
-        raise typer.Exit(1)
+    candidates = container.ideas.resolve_all(query)
+    entry = disambiguate(candidates, query, "Ideia",
+                         lambda c: f"[{c.id}] {c.title} — {c.domain}")
+    updated = container.ideas.edit(entry.id, **kwargs)
     typer.echo(f"✓ Ideia '{updated.title}' atualizada.")
 
 
 @idea_app.command("remove")
 def idea_remove(query: str = typer.Argument(..., help="ID ou título")):
     container = get_container()
-    entry = container.ideas.resolve(query)
-    if entry is None:
-        typer.echo(f"Ideia '{query}' não encontrada.", err=True)
-        raise typer.Exit(1)
+    candidates = container.ideas.resolve_all(query)
+    entry = disambiguate(candidates, query, "Ideia",
+                         lambda c: f"[{c.id}] {c.title} — {c.domain}")
     confirm = typer.confirm(f"Remover ideia '{entry.title}'?")
     if not confirm:
         raise typer.Abort()

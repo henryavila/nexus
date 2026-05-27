@@ -42,6 +42,24 @@ def _detect_data_repo(data_dir) -> str | None:
     return None
 
 
+from typing import Callable, TypeVar
+
+_T = TypeVar("_T")
+
+
+def disambiguate(candidates: list[_T], query: str, label: str,
+                 fmt: Callable[[_T], str]) -> _T:
+    if not candidates:
+        typer.echo(f"{label} '{query}' não encontrado(a).", err=True)
+        raise typer.Exit(1)
+    if len(candidates) == 1:
+        return candidates[0]
+    typer.echo(f"Múltiplos resultados para '{query}'. Use o slug:")
+    for c in candidates:
+        typer.echo(f"  {fmt(c)}")
+    raise typer.Exit(1)
+
+
 from nexus.cli import project_cmds  # noqa: E402, F401
 from nexus.cli import idea_cmds  # noqa: E402, F401
 from nexus.cli import app_cmds  # noqa: E402, F401

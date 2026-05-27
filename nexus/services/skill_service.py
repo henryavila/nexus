@@ -33,8 +33,21 @@ class SkillService:
             self._sync.quick_sync(["skills/"], "skill-remove")
         return removed
 
+    def edit(self, query: str, **kwargs) -> Skill | None:
+        entry = self._repo.resolve(query)
+        if entry is None:
+            return None
+        for key, value in kwargs.items():
+            setattr(entry, key, value)
+        self._repo.save(entry)
+        self._sync.quick_sync([f"skills/{entry.slug}.md"], "skill-edit")
+        return entry
+
     def resolve(self, query: str) -> Skill | None:
         return self._repo.resolve(query)
+
+    def resolve_all(self, query: str) -> list[Skill]:
+        return self._repo.resolve_all(query)
 
     def list_all(self) -> list[Skill]:
         return self._repo.load_all()

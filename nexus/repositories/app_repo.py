@@ -16,8 +16,19 @@ class AppRepository(YamlRepository[App]):
 
     def add(self, item: App) -> None:
         if not item.slug:
-            item.slug = self._make_slug(item.name)
+            item.slug = self._unique_slug(item.name)
         super().add(item)
+
+    def _unique_slug(self, name: str) -> str:
+        existing = {a.slug for a in self.load_all()}
+        base = self._make_slug(name)
+        if base not in existing:
+            return base
+        for i in range(2, 100):
+            candidate = f"{base}{i}"
+            if candidate not in existing:
+                return candidate
+        return base
 
     def _make_slug(self, name: str) -> str:
         s = name.lower().strip()

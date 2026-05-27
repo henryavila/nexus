@@ -33,19 +33,22 @@ class CodexService:
             self._sync.quick_sync(["codex/"], "codex-remove")
         return removed
 
-    def edit(self, slug: str, **kwargs) -> CodexEntry | None:
-        entry = self._repo.get(slug)
+    def edit(self, query: str, **kwargs) -> CodexEntry | None:
+        entry = self._repo.resolve(query)
         if entry is None:
             return None
         for key, value in kwargs.items():
             setattr(entry, key, value)
         entry.updated = str(date.today())
         self._repo.save(entry)
-        self._sync.quick_sync([f"codex/{slug}.md"], "codex-edit")
+        self._sync.quick_sync([f"codex/{entry.slug}.md"], "codex-edit")
         return entry
 
     def resolve(self, query: str) -> CodexEntry | None:
         return self._repo.resolve(query)
+
+    def resolve_all(self, query: str) -> list[CodexEntry]:
+        return self._repo.resolve_all(query)
 
     def list_all(self) -> list[CodexEntry]:
         return self._repo.load_all()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typer
-from nexus.cli import app, get_container
+from nexus.cli import app, get_container, disambiguate
 from nexus.cli.formatters import rel_date
 
 project_app = typer.Typer(help="Gerenciar projetos")
@@ -47,16 +47,9 @@ def list_projects(
 @app.command("remove")
 def remove_project(query: str = typer.Argument(..., help="Slug ou nome do projeto")):
     container = get_container()
-    candidates = container.projects._repo.resolve_all(query)
-    if not candidates:
-        typer.echo(f"Projeto '{query}' não encontrado.", err=True)
-        raise typer.Exit(1)
-    if len(candidates) > 1:
-        typer.echo(f"Múltiplos projetos encontrados para '{query}'. Use o slug:")
-        for c in candidates:
-            typer.echo(f"  {c.name} ({c.slug}) — {c.domain}/{c.nature}")
-        raise typer.Exit(1)
-    entry = candidates[0]
+    candidates = container.projects.resolve_all(query)
+    entry = disambiguate(candidates, query, "Projeto",
+                         lambda c: f"{c.name} ({c.slug}) — {c.domain}/{c.nature}")
     confirm = typer.confirm(f"Remover '{entry.name}' ({entry.slug})?")
     if not confirm:
         raise typer.Abort()
@@ -94,10 +87,10 @@ def edit_project(
     if not kwargs:
         typer.echo("Nenhum campo para editar.", err=True)
         raise typer.Exit(1)
-    updated = container.projects.edit(query, **kwargs)
-    if updated is None:
-        typer.echo(f"Projeto '{query}' não encontrado.", err=True)
-        raise typer.Exit(1)
+    candidates = container.projects.resolve_all(query)
+    entry = disambiguate(candidates, query, "Projeto",
+                         lambda c: f"{c.name} ({c.slug}) — {c.domain}/{c.nature}")
+    updated = container.projects.edit(entry.slug, **kwargs)
     typer.echo(f"✓ Projeto '{updated.name}' atualizado.")
 
 
@@ -130,8 +123,8 @@ def note_project(
     text: str = typer.Argument(..., help="Texto da nota"),
 ):
     container = get_container()
-    updated = container.projects.edit(query, note=text)
-    if updated is None:
-        typer.echo(f"Projeto '{query}' não encontrado.", err=True)
-        raise typer.Exit(1)
+    candidates = container.projects.resolve_all(query)
+    entry = disambiguate(candidates, query, "Projeto",
+                         lambda c: f"{c.name} ({c.slug}) — {c.domain}/{c.nature}")
+    updated = container.projects.edit(entry.slug, note=text)
     typer.echo(f"✓ Nota atualizada para '{updated.name}'.")

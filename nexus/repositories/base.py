@@ -190,16 +190,35 @@ class MarkdownRepository(Generic[T]):
         return entry
 
     def resolve(self, query: str) -> T | None:
+        results = self.resolve_all(query)
+        return results[0] if results else None
+
+    def resolve_all(self, query: str) -> list[T]:
         entries = self.load_all()
         q = query.lower().strip()
+        slug_hit = None
         for e in entries:
             if getattr(e, "slug", "").lower() == q:
-                return e
-        for e in entries:
-            title = getattr(e, "title", "")
-            if title.lower() == q:
-                return e
-        for e in entries:
-            if q in getattr(e, "slug", "").lower():
-                return e
-        return None
+                slug_hit = e
+                break
+        by_title = [
+            e for e in entries
+            if (getattr(e, "title", "") or "").lower() == q
+        ]
+        if slug_hit and not by_title:
+            return [slug_hit]
+        if by_title:
+            if slug_hit and slug_hit not in by_title:
+                return [slug_hit] + by_title
+            return by_title
+        by_partial_slug = [
+            e for e in entries
+            if q in getattr(e, "slug", "").lower()
+        ]
+        if by_partial_slug:
+            return by_partial_slug
+        by_partial_title = [
+            e for e in entries
+            if q in (getattr(e, "title", "") or "").lower()
+        ]
+        return by_partial_title

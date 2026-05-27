@@ -38,5 +38,8 @@ class IdeaService:
     def resolve(self, query: str) -> Idea | None:
         return self._repo.resolve(query)
 
+    def resolve_all(self, query: str) -> list[Idea]:
+        return self._repo.resolve_all(query)
+
     def list_all(self) -> list[Idea]:
         return self._repo.load_all()

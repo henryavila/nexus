@@ -38,6 +38,9 @@ class ProjectService:
     def resolve(self, query: str) -> Project | None:
         return self._repo.resolve(query)
 
+    def resolve_all(self, query: str) -> list[Project]:
+        return self._repo.resolve_all(query)
+
     def resolve_by_path(self, path: str) -> Project | None:
         return self._repo.resolve_by_path(path)
 

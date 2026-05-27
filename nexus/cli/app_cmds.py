@@ -1,6 +1,6 @@
 from __future__ import annotations
 import typer
-from nexus.cli import app, get_container
+from nexus.cli import app, get_container, disambiguate
 
 app_cmd = typer.Typer(help="Gerenciar apps")
 app.add_typer(app_cmd, name="app")
@@ -34,10 +34,9 @@ def app_list():
 @app_cmd.command("remove")
 def app_remove(query: str = typer.Argument(...)):
     container = get_container()
-    entry = container.apps.resolve(query)
-    if entry is None:
-        typer.echo(f"App '{query}' não encontrado.", err=True)
-        raise typer.Exit(1)
+    candidates = container.apps.resolve_all(query)
+    entry = disambiguate(candidates, query, "App",
+                         lambda c: f"{c.name} ({c.slug}) — {c.domain}")
     confirm = typer.confirm(f"Remover app '{entry.name}'?")
     if not confirm:
         raise typer.Abort()
@@ -59,8 +58,8 @@ def app_edit(
     if not kwargs:
         typer.echo("Nenhum campo para editar.", err=True)
         raise typer.Exit(1)
-    updated = container.apps.edit(query, **kwargs)
-    if updated is None:
-        typer.echo(f"App '{query}' não encontrado.", err=True)
-        raise typer.Exit(1)
+    candidates = container.apps.resolve_all(query)
+    entry = disambiguate(candidates, query, "App",
+                         lambda c: f"{c.name} ({c.slug}) — {c.domain}")
+    updated = container.apps.edit(entry.slug, **kwargs)
     typer.echo(f"✓ App '{updated.name}' atualizado.")
