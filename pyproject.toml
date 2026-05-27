@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexus"
+version = "0.2.0"
+description = "CLI + TUI para catalogar, escanear e lançar projetos de agentes IA"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6.0", "textual>=0.80", "typer>=0.12"]
+
+[project.scripts]
+nexus = "nexus.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nexus*"]

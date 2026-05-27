@@ -1,0 +1,36 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+
+# Data (separate repo)
+data/
+data.json
+
+# Personal configs
+.ai/
+.agent/
+.agents/
+.opencode/
+_bmad/
+_bmad-output/
+.atomic-skills/
+.claude/
+
+# Assets
+icon.png
+web/
+frontend/
+
+# IDE
+.idea/
+.vscode/
+
+# Test/build artifacts
+.coverage
+htmlcov/
+dist/
+build/
