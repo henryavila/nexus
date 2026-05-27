@@ -148,6 +148,34 @@ def test_md_remove(md_repo):
     assert md_repo.load_all() == []
 
 
+def test_md_resolve_all_duplicate_title(md_repo):
+    md_repo.save(CodexEntry(slug="guia-a", title="Guia Python", kind="guia"))
+    md_repo.save(CodexEntry(slug="guia-b", title="Guia Python", kind="referência"))
+    results = md_repo.resolve_all("Guia Python")
+    slugs = {r.slug for r in results}
+    assert slugs == {"guia-a", "guia-b"}
+
+
+def test_md_resolve_all_exact_slug_returns_one(md_repo):
+    md_repo.save(CodexEntry(slug="guia-a", title="Guia Python", kind="guia"))
+    md_repo.save(CodexEntry(slug="guia-b", title="Guia Python", kind="referência"))
+    results = md_repo.resolve_all("guia-b")
+    assert len(results) == 1
+    assert results[0].slug == "guia-b"
+
+
+def test_md_resolve_all_no_match(md_repo):
+    md_repo.save(CodexEntry(slug="a", title="A"))
+    assert md_repo.resolve_all("nonexistent") == []
+
+
+def test_md_resolve_all_partial(md_repo):
+    md_repo.save(CodexEntry(slug="python-guide", title="Python Guide"))
+    results = md_repo.resolve_all("python")
+    assert len(results) == 1
+    assert results[0].slug == "python-guide"
+
+
 def test_md_path_traversal_rejected(md_repo):
     with pytest.raises(ValueError, match="Invalid slug"):
         md_repo.get("../../../etc/passwd")

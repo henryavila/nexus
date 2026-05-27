@@ -61,6 +61,14 @@ def test_resolve_project(cfg, sync):
     assert svc.resolve("my").name == "My Project"
 
 
+def test_resolve_all_project(cfg, sync):
+    svc = ProjectService(cfg, sync)
+    svc.add("Alpha", path="/a")
+    svc.add("Alpha", path="/b")
+    results = svc.resolve_all("Alpha")
+    assert len(results) == 2
+
+
 # --- AppService ---
 
 def test_add_app(cfg, sync):
@@ -70,11 +78,26 @@ def test_add_app(cfg, sync):
     assert a.added == str(date.today())
 
 
+def test_edit_app(cfg, sync):
+    svc = AppService(cfg, sync)
+    svc.add("My App")
+    updated = svc.edit("my-app", description="new desc")
+    assert updated.description == "new desc"
+
+
 def test_remove_app(cfg, sync):
     svc = AppService(cfg, sync)
     svc.add("X")
     assert svc.remove("x") is not None
     assert svc.list_all() == []
+
+
+def test_resolve_all_app(cfg, sync):
+    svc = AppService(cfg, sync)
+    svc.add("MyApp", domain="tech")
+    svc.add("MyApp", domain="pessoal")
+    results = svc.resolve_all("MyApp")
+    assert len(results) == 2
 
 
 # --- IdeaService ---
@@ -93,6 +116,14 @@ def test_edit_idea(cfg, sync):
     assert updated.priority == "high"
 
 
+def test_resolve_all_idea(cfg, sync):
+    svc = IdeaService(cfg, sync)
+    svc.add("Cool idea", domain="tech")
+    svc.add("Cool idea", domain="pessoal")
+    results = svc.resolve_all("Cool idea")
+    assert len(results) == 2
+
+
 # --- CodexService ---
 
 def test_add_codex(cfg, sync):
@@ -102,11 +133,33 @@ def test_add_codex(cfg, sync):
     assert c.created == str(date.today())
 
 
+def test_edit_codex(cfg, sync):
+    svc = CodexService(cfg, sync)
+    svc.add("My Guide", kind="guia", content="# old")
+    updated = svc.edit("My Guide", content="# new")
+    assert updated.content == "# new"
+    assert updated.updated == str(date.today())
+
+
+def test_edit_codex_by_slug(cfg, sync):
+    svc = CodexService(cfg, sync)
+    svc.add("My Guide", kind="guia")
+    updated = svc.edit("my-guide", kind="referência")
+    assert updated.kind == "referência"
+
+
 def test_remove_codex(cfg, sync):
     svc = CodexService(cfg, sync)
     svc.add("X", content="hi")
     assert svc.remove("x") is not None
     assert svc.list_all() == []
+
+
+def test_resolve_all_codex(cfg, sync):
+    svc = CodexService(cfg, sync)
+    svc.add("Guide A", kind="guia")
+    results = svc.resolve_all("Guide A")
+    assert len(results) == 1
 
 
 # --- SkillService ---
@@ -115,6 +168,32 @@ def test_add_skill(cfg, sync):
     svc = SkillService(cfg, sync)
     s = svc.add("TDD Skill", scope="global")
     assert s.slug == "tdd-skill"
+
+
+def test_edit_skill(cfg, sync):
+    svc = SkillService(cfg, sync)
+    svc.add("TDD Skill", scope="global")
+    updated = svc.edit("tdd-skill", scope="project")
+    assert updated.scope == "project"
+
+
+def test_edit_skill_by_title(cfg, sync):
+    svc = SkillService(cfg, sync)
+    svc.add("TDD Skill", scope="global")
+    updated = svc.edit("TDD Skill", url="https://example.com")
+    assert updated.url == "https://example.com"
+
+
+def test_edit_skill_not_found(cfg, sync):
+    svc = SkillService(cfg, sync)
+    assert svc.edit("nonexistent", scope="x") is None
+
+
+def test_remove_skill(cfg, sync):
+    svc = SkillService(cfg, sync)
+    svc.add("X")
+    assert svc.remove("x") is not None
+    assert svc.list_all() == []
 
 
 # --- EnvironmentService ---
