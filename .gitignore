@@ -22,8 +22,9 @@ _bmad-output/
 
 # Assets
 icon.png
+frontend/data.json
+frontend/icon.png
 web/
-frontend/
 
 # IDE
 .idea/

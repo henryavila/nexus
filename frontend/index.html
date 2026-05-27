@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="glow-top"></div>
+
+    <header class="app-header">
+        <div class="header-top">
+            <div class="logo" aria-label="Nexus"><span>N</span>EXUS</div>
+
+            <div class="search-desktop">
+                <svg class="search-svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.45 4.38l4.09 4.08a.75.75 0 11-1.06 1.06l-4.08-4.09A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+                <input type="text" id="search-desk" placeholder="Filtrar secao ativa" aria-label="Filtrar secao ativa">
+            </div>
+
+            <button class="search-toggle" id="search-btn" type="button" aria-label="Abrir busca">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.45 4.38l4.09 4.08a.75.75 0 11-1.06 1.06l-4.08-4.09A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+            </button>
+        </div>
+
+        <div class="header-nav-shell">
+            <div class="primary-tabs-shell">
+                <nav class="primary-tabs" id="primary-tabs" aria-label="Secoes"></nav>
+                <button class="more-btn" id="more-btn" type="button" hidden aria-haspopup="menu" aria-expanded="false" aria-controls="more-menu">
+                    <span>Mais</span>
+                </button>
+            </div>
+
+            <div class="more-menu" id="more-menu" hidden></div>
+        </div>
+    </header>
+
+    <div class="search-overlay" id="search-overlay">
+        <input type="text" id="search-mobile" placeholder="Filtrar secao ativa" autofocus aria-label="Filtrar secao ativa">
+        <button class="search-close" id="search-close" type="button">ESC</button>
+    </div>
+
+    <div class="alerts-bar" id="alerts-bar">
+        <div class="alerts-summary" id="alerts-toggle">
+            <svg class="alert-svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+            <span id="alerts-count"></span>
+        </div>
+        <div class="alerts-details" id="alerts-details"></div>
+    </div>
+
+    <main class="page-shell">
+        <section class="section" id="ideas-section">
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">1</p>
+                    <h2 class="section-title">Ideias</h2>
+                </div>
+                <span class="section-count" id="ideas-count"></span>
+            </div>
+            <div class="ideas-grid" id="ideas-grid"></div>
+        </section>
+
+        <section class="section" id="projects-section" hidden>
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">2</p>
+                    <h2 class="section-title">Projetos</h2>
+                </div>
+                <span class="section-count" id="projects-count"></span>
+            </div>
+            <div class="projects-feed" id="projects-feed"></div>
+        </section>
+
+        <section class="section" id="apps-section" hidden>
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">3</p>
+                    <h2 class="section-title">Apps</h2>
+                </div>
+                <span class="section-count" id="apps-count"></span>
+            </div>
+            <div class="projects-feed" id="apps-feed"></div>
+        </section>
+
+        <section class="section" id="skills-section" hidden>
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">4</p>
+                    <h2 class="section-title">Skills</h2>
+                </div>
+                <span class="section-count" id="skills-count"></span>
+            </div>
+            <div class="ideas-grid" id="skills-grid"></div>
+        </section>
+
+        <section class="section" id="environments-section" hidden>
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">5</p>
+                    <h2 class="section-title">Environments</h2>
+                </div>
+                <span class="section-count" id="environments-count"></span>
+            </div>
+            <div class="ideas-grid" id="environments-grid"></div>
+        </section>
+
+        <section class="section" id="codex-section" hidden>
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">6</p>
+                    <h2 class="section-title">Codex</h2>
+                </div>
+                <span class="section-count" id="codex-count"></span>
+            </div>
+            <div class="ideas-grid" id="codex-grid"></div>
+        </section>
+    </main>
+
+    <div class="detail-overlay" id="detail-overlay" aria-hidden="true">
+        <div class="detail-backdrop" id="detail-backdrop"></div>
+        <div class="detail-panel" id="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+            <button class="detail-close" id="detail-close" type="button" aria-label="Fechar detalhe">&times;</button>
+            <div class="detail-header">
+                <div class="detail-kicker" id="detail-kicker"></div>
+                <h2 class="detail-title" id="detail-title"></h2>
+                <div class="detail-meta" id="detail-meta"></div>
+            </div>
+            <div class="detail-body" id="detail-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script data-cfasync="false" src="js/dashboard-core.js"></script>
+    <script data-cfasync="false" src="js/app.js"></script>
+</body>
+</html>
